@@ -6,6 +6,10 @@ interface ButtonProps {
   Loading: number;
 }
 
+interface FormProps {
+  error: boolean;
+}
+
 export const Container = styled.div`
   max-width: 700px;
   background: #fff;
@@ -26,14 +30,14 @@ export const Container = styled.div`
   }
 `;
 
-export const Form = styled.form`
+export const Form = styled.form<FormProps>`
   margin-top: 30px;
   display: flex;
   flex-direction: row;
 
   input {
     flex: 1;
-    border: 1px solid #ddd;
+    border: 1px solid ${props => (props.error ? "#FF0000" : "#eee")};
     padding: 10px 15px;
     border-radius: 4px;
     font-size: 17px;
@@ -111,3 +115,4 @@ export const DeleteButton = styled.button.attrs({
   outline: 0;
   border-radius: 4px;
 `;
+

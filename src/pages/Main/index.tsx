@@ -1,6 +1,6 @@
 /** @format */
 
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { Container, Form, SubmitButton, List, DeleteButton } from "./styles";
 import { FaGithub, FaPlus, FaSpinner, FaBars, FaTrash } from "react-icons/fa";
 
@@ -13,6 +13,32 @@ export default function Main() {
   const [repositories, setRepositories] = useState<{ name: string }[]>([]);
   const [newRepo, setNewRepo] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [alert, setAlert] = useState<boolean>(false);
+
+  //DidMount
+  useEffect(() => {
+    const repoStorage = localStorage.getItem("repos");
+
+    if (repoStorage) {
+      try {
+        const parsedRepos = JSON.parse(repoStorage);
+        console.log("Repos loaded from localStorage:", parsedRepos);
+        setRepositories(parsedRepos);
+      } catch (error) {
+        console.error("Error parsing repos from localStorage:", error);
+      }
+    } else {
+      console.log("No repos found in localStorage");
+    }
+  }, []);
+
+  //DidUpdate
+  useEffect(() => {
+    console.log("Saving repos to localStorage:", repositories);
+    if (repositories.length > 0) {
+      localStorage.setItem("repos", JSON.stringify(repositories));
+    }
+  }, [repositories]);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
@@ -20,8 +46,19 @@ export default function Main() {
 
       async function submit() {
         setLoading(true);
+        setAlert(false);
         try {
+          if (newRepo === "") {
+            throw new Error("Você precisa indicar um repositório");
+          }
+
           const response = await api.get(`repos/${newRepo}`);
+
+          const hasRepo = repositories.find((r) => r.name === newRepo);
+
+          if (hasRepo) {
+            throw new Error("Repositório duplicado");
+          }
 
           const data = {
             name: response.data.full_name,
@@ -30,6 +67,7 @@ export default function Main() {
           setRepositories([...repositories, data]);
           setNewRepo("");
         } catch (error) {
+          setAlert(true);
           console.log(error);
         } finally {
           setLoading(false);
@@ -41,14 +79,18 @@ export default function Main() {
     [newRepo, repositories]
   );
 
-  function handleInputChange(e: React.ChangeEvent<HTMLInputElement>):void {
+  function handleInputChange(e: React.ChangeEvent<HTMLInputElement>): void {
     setNewRepo(e.target.value);
+    setAlert(false);
   }
 
-  const handleDelete = useCallback((repo: string):void => {
-    const find = repositories.filter((r) => r.name !== repo);
-    setRepositories(find);
-  }, [repositories]);
+  const handleDelete = useCallback(
+    (repo: string): void => {
+      const find = repositories.filter((r) => r.name !== repo);
+      setRepositories(find);
+    },
+    [repositories]
+  );
 
   return (
     <Container>
@@ -57,7 +99,7 @@ export default function Main() {
         Meus Repositórios
       </h1>
 
-      <Form onSubmit={handleSubmit}>
+      <Form onSubmit={handleSubmit} error={alert}>
         <input
           type="text"
           placeholder="Adicionar repositório"
