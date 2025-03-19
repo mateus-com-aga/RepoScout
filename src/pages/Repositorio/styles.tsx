@@ -121,5 +121,10 @@ export const PageActions = styled.div`
     color: #FFF;
     padding: 5px;
     border-radius: 4px;
+
+    &:disabled{
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
   }
 `;

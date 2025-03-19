@@ -146,7 +146,11 @@ export default function Repositorio() {
       </IssuesList>
 
       <PageActions>
-        <button type="button" onClick={() => handlePage("back")}>
+        <button
+          type="button"
+          onClick={() => handlePage("back")}
+          disabled={page < 2}
+        >
           Voltar
         </button>
         <button type="button" onClick={() => handlePage("next")}>
